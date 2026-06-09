@@ -1,7 +1,11 @@
 [requires]
+boost/1.91.0
 restinio/0.7.9
 [generators]
 CMakeDeps
 CMakeToolchain
 [layout]
 cmake_layout
+[options]
+boost/*:without_cobalt=True
+boost/*:shared=False

@@ -7,6 +7,7 @@ if (POLICY CMP0141)
 endif()
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_BINARY_DIR}/build/generators/conan_toolchain.cmake")
+cmake_policy(SET CMP0111 OLD)
 
 project ("Nitrogen" CXX)
 
