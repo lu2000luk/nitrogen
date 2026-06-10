@@ -256,6 +256,7 @@ int main(int argc, char* argv[])
 
 	int port = 3070;
 	string host = "localhost";
+	bool use_local_yt_dlp = false;
 
 	fs::path this_path = fs::current_path();
 
@@ -264,7 +265,7 @@ int main(int argc, char* argv[])
 	
 	for (size_t i = 0; i < args.size(); ++i) {
 		if (args[i] == "-h" || args[i] == "--help") {
-			std::cout << "--port <port> --host <host> [--no-download-ffmpeg] [--no-download-yt-dlp]\n";
+			std::cout << "--port <port> --host <host> [--no-download-ffmpeg] [--no-download-yt-dlp] [--use-local-yt-dlp]\n";
 			return 0;
 		} else if (args[i] == "--port" && i + 1 < args.size()) {
 			port = stoi(args[i + 1]);
@@ -274,6 +275,8 @@ int main(int argc, char* argv[])
 			download_ffmpeg = false;
 		} else if (args[i] == "--no-download-yt-dlp") {
 			download_yt_dlp = false;
+		} else if (args[i] == "--use-local-yt-dlp") {
+			use_local_yt_dlp = true;
 		}
 	}
 
@@ -300,7 +303,7 @@ int main(int argc, char* argv[])
 		restinio::on_thread_pool(std::thread::hardware_concurrency())
 		.port(port)
 		.address(host)
-		.request_handler([&ioctx, this_path](restinio::request_handle_t req) {
+		.request_handler([&ioctx, this_path, use_local_yt_dlp](restinio::request_handle_t req) {
 			auto path = req->header().path();
 			auto method = req->header().method();
 
@@ -417,7 +420,7 @@ int main(int argc, char* argv[])
 			
 			asio::co_spawn(
 				ioctx,
-				[&ioctx, req]() -> asio::awaitable<void> {
+				[&ioctx, req, use_local_yt_dlp]() -> asio::awaitable<void> {
 					auto resp = req->create_response<restinio::chunked_output_t>();
 
 					resp.append_header(restinio::http_field::server, "Nitrogen!")
@@ -428,7 +431,11 @@ int main(int argc, char* argv[])
 						.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 						.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
 						.append_header("Access-Control-Max-Age", "86400")
-						.append_header(restinio::http_field::content_type, "text/plain; charset=utf-8");
+						.append_header(restinio::http_field::content_type, "text/event-stream; charset=utf-8")
+						// Cloudflare / reverse-proxy streaming headers
+						.append_header(restinio::http_field::cache_control, "no-cache, no-store, must-revalidate")
+						.append_header(restinio::http_field::connection, "keep-alive")
+						.append_header("X-Accel-Buffering", "no");
 					resp.flush();
 
 					try {
@@ -436,8 +443,18 @@ int main(int argc, char* argv[])
 
 						bool sent_id = false;
 
-						auto exe = bp::v2::environment::find_executable("yt-dlp");
-						cout << "yt-dlp found at: " << exe << endl;
+						fs::path exe;
+						if (use_local_yt_dlp) {
+							exe = bp::v2::environment::find_executable("yt-dlp");
+							cout << "Using local (system) yt-dlp at: " << exe << endl;
+						} else {
+#if _WIN32
+							exe = fs::current_path() / "yt-dlp.exe";
+#else
+							exe = fs::current_path() / "yt-dlp";
+#endif
+							cout << "Using downloaded yt-dlp at: " << exe << endl;
+						}
 
 						auto queries = restinio::parse_query(req->header().query());
 						string url = escape_string(base64_decode(string(queries["u"])));
