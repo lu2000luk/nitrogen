@@ -2,8 +2,7 @@
 
 Nitrogen is a video/audio downloader based on yt-dlp.
 
-## YouTube dosent work on the hosted version since we got flagged as bots. Selfhost if you need it. Other socials still work tho!
-(To the HC reviewer: It was clearly said on the ship devlog post)
+### YouTube dosent work on the hosted version since we got flagged as bots. Selfhost if you need it. Other socials still work tho!
 
 ## Structure
 
