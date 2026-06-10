@@ -32,7 +32,7 @@
 
 		try {
 			let res = await fetch(
-				`${serverUrl}/download?u=${encoded}&m=${encoded_mode}`
+				`${serverUrl}/download?u=${encoded}&m=${encoded_mode}`,
 			);
 
 			let rid = "";
@@ -51,38 +51,43 @@
 				const text = decoder.decode(chunk, { stream: true });
 				console.log(text);
 
-				if (text.startsWith("PROGRESS|")) {
-					const [_, progress] = text.trim().split("|");
-					const index = downloads.findIndex((d) => d.id === rid);
-					if (index !== -1) {
-						if (parseFloat(progress) < downloads[index].progress) {
-							return;	
+				for (const line of text.trim().split("\n")) {
+					if (line.startsWith("PROGRESS|")) {
+						const [_, progress] = line.trim().split("|");
+						const index = downloads.findIndex((d) => d.id === rid);
+						if (index !== -1) {
+							if (parseFloat(progress) < downloads[index].progress) {
+								return;
+							}
+
+							downloads[index].progress = parseFloat(progress);
+							downloads = [...downloads];
 						}
 
-						downloads[index].progress = parseFloat(progress);
-						downloads = [...downloads];
-					}
+						console.log(`Progress update: ${progress}%`);
+					} else if (line.startsWith("ID|")) {
+						const [_, id] = line.trim().split("|");
+						downloads = [
+							...downloads,
+							{ url: inputUrl, progress: 0, id, mode: mode ? "mp4" : "mp3" },
+						];
+						rid = id;
+						console.log("Download started:", id);
+					} else if (line.startsWith("ERROR|")) {
+						const [_, message] = line.trim().split("|");
+						alert(`Download error: ${message}`);
+						isLoading = false;
+						inputUrl = "";
+						return;
+					} else if (line.startsWith("SUCCESS|")) {
+						const index = downloads.findIndex((d) => d.id === rid);
+						if (index !== -1) {
+							downloads[index].completed = true;
+							downloads = [...downloads];
+						}
 
-					console.log(`Progress update: ${progress}%`);
-				} else if (text.startsWith("ID|")) {
-					const [_, id] = text.trim().split("\n")[0].split("|");
-					downloads = [...downloads, { url: inputUrl, progress: 0, id, mode: mode ? "mp4" : "mp3" }];
-					rid = id;
-					console.log("Download started:", id);
-				} else if (text.startsWith("ERROR|")) {
-					const [_, message] = text.trim().split("|");
-					alert(`Download error: ${message}`);
-					isLoading = false;
-					inputUrl = "";
-					return;
-				} else if (text.startsWith("SUCCESS|")) {
-					const index = downloads.findIndex((d) => d.id === rid);
-					if (index !== -1) {
-						downloads[index].completed = true;
-						downloads = [...downloads];
+						console.log("Download completed:", rid);
 					}
-
-					console.log("Download completed:", rid);
 				}
 			}
 		} catch (err) {
@@ -140,9 +145,7 @@
 						</svg>
 					</div>
 
-					<div
-						class="mr-1 py-1.5 px-3 rounded-full {mode ? '' : 'bg-white/5'}"
-					>
+					<div class="mr-1 py-1.5 px-3 rounded-full {mode ? '' : 'bg-white/5'}">
 						<svg
 							width="20"
 							height="25"
@@ -266,7 +269,10 @@
 				{#if download.completed || download.progress === 100}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div class="text-sm p-2 mr-2 rounded-full cursor-pointer" onclick={() => resolve(download.id!, download.mode)}>
+					<div
+						class="text-sm p-2 mr-2 rounded-full cursor-pointer"
+						onclick={() => resolve(download.id!, download.mode)}
+					>
 						<svg
 							width="15"
 							height="15"
