@@ -253,7 +253,7 @@
 						: download.url.trim()}
 				</div>
 
-				{#if download.completed}
+				{#if download.completed || download.progress === 100}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div class="text-sm p-2 mr-2 rounded-full cursor-pointer" onclick={() => resolve(download.id!, download.mode)}>
