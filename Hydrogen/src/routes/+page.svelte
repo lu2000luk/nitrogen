@@ -40,6 +40,12 @@
 			if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 			const decoder = new TextDecoder("utf-8");
 
+			setTimeout(() => {
+				downloads[downloads.findIndex((d) => d.id === rid)].completed = true;
+				downloads = [...downloads];
+				console.log("Download completed (timeout):", rid);
+			}, 30000);
+
 			// @ts-ignore
 			for await (const chunk of res.body) {
 				const text = decoder.decode(chunk, { stream: true });
@@ -49,6 +55,10 @@
 					const [_, progress] = text.trim().split("|");
 					const index = downloads.findIndex((d) => d.id === rid);
 					if (index !== -1) {
+						if (parseFloat(progress) < downloads[index].progress) {
+							return;	
+						}
+
 						downloads[index].progress = parseFloat(progress);
 						downloads = [...downloads];
 					}
