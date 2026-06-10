@@ -1,5 +1,5 @@
 <script lang="ts">
-	let serverUrl = "http://localhost:3070";
+	let serverUrl = "https://nitrofs.lu2000luk.com";
 
 	type Download = {
 		url: string;
