@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
 						.append_header(restinio::http_field::content_type, "text/event-stream; charset=utf-8")
 						// Cloudflare / reverse-proxy streaming headers
 						.append_header(restinio::http_field::cache_control, "no-cache, no-store, must-revalidate")
-						.append_header(restinio::http_field::connection, "keep-alive")
+						.append_header("Connection", "keep-alive")
 						.append_header("X-Accel-Buffering", "no");
 					resp.flush();
 
@@ -443,15 +443,15 @@ int main(int argc, char* argv[])
 
 						bool sent_id = false;
 
-						fs::path exe;
+						boost::filesystem::path exe;
 						if (use_local_yt_dlp) {
 							exe = bp::v2::environment::find_executable("yt-dlp");
 							cout << "Using local (system) yt-dlp at: " << exe << endl;
 						} else {
 #if _WIN32
-							exe = fs::current_path() / "yt-dlp.exe";
+							exe = boost::filesystem::path(fs::current_path().string()) / "yt-dlp.exe";
 #else
-							exe = fs::current_path() / "yt-dlp";
+							exe = boost::filesystem::path(fs::current_path().string()) / "yt-dlp";
 #endif
 							cout << "Using downloaded yt-dlp at: " << exe << endl;
 						}
