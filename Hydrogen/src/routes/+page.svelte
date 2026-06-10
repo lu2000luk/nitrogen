@@ -1,5 +1,5 @@
 <script lang="ts">
-	let serverUrl = "https://nitrofs.lu2000luk.com";
+	let serverUrl = "https://nitrogen-production-7763.up.railway.app";
 
 	type Download = {
 		url: string;
