@@ -309,6 +309,10 @@ int main(int argc, char* argv[])
 			if (method != restinio::http_method_get()) {
 				return req->create_response(restinio::status_method_not_allowed())
 					.append_header_date_field()
+					.append_header("Access-Control-Allow-Origin", "*")
+					.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+					.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+					.append_header("Access-Control-Max-Age", "86400")
 					.done();
 			}
 
@@ -316,6 +320,10 @@ int main(int argc, char* argv[])
 				return req->create_response(restinio::status_ok())
 					.set_body("Nitrogen!")
 					.append_header_date_field()
+					.append_header("Access-Control-Allow-Origin", "*")
+					.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+					.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+					.append_header("Access-Control-Max-Age", "86400")
 					.done();
 			}
 
@@ -325,6 +333,10 @@ int main(int argc, char* argv[])
 
 				if (ext != "mp3" && ext != "mp4") {
 					return req->create_response(restinio::status_bad_request())
+						.append_header("Access-Control-Allow-Origin", "*")
+						.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+						.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+						.append_header("Access-Control-Max-Age", "86400")
 						.set_body("Invalid format. Supported formats: mp3, mp4")
 						.append_header_date_field()
 						.done();
@@ -332,6 +344,10 @@ int main(int argc, char* argv[])
 
 				if (!q.has("id") || q["id"].empty()) {
 					return req->create_response(restinio::status_bad_request())
+						.append_header("Access-Control-Allow-Origin", "*")
+						.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+						.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+						.append_header("Access-Control-Max-Age", "86400")
 						.set_body("Missing required query parameter: id")
 						.append_header_date_field()
 						.done();
@@ -344,6 +360,10 @@ int main(int argc, char* argv[])
 				if (!exists(file_path)) {
 					return req->create_response(restinio::status_not_found())
 						.set_body("File not found (if you are 100% sure the ID is correct the file may have been deleted or has multiple parts of which the first one was a temporary artifact of yt-dlp)")
+						.append_header("Access-Control-Allow-Origin", "*")
+						.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+						.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+						.append_header("Access-Control-Max-Age", "86400")
 						.append_header_date_field()
 						.done();
 				}
@@ -353,11 +373,19 @@ int main(int argc, char* argv[])
 					.append_header_date_field()
 					.append_header(restinio::http_field::content_type, (ext == "mp3") ? "audio/mpeg" : "video/mp4")
 					.append_header(restinio::http_field::content_disposition, "attachment; filename=\"" + split_string(string(q["id"]), "-"[0])[0] + "." + string(ext) + "\"")
+					.append_header("Access-Control-Allow-Origin", "*")
+					.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+					.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+					.append_header("Access-Control-Max-Age", "86400")
 					.done();
 			}
 
 			if (path != "/download") {
 				return req->create_response(restinio::status_not_found())
+					.append_header("Access-Control-Allow-Origin", "*")
+					.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+					.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+					.append_header("Access-Control-Max-Age", "86400")
 					.append_header_date_field()
 					.done();
 			}
@@ -367,6 +395,10 @@ int main(int argc, char* argv[])
 
 			if (!queries.has("u") || !queries.has("m") || queries["u"].empty() || queries["m"].empty()) {
 				return req->create_response(restinio::status_bad_request())
+					.append_header("Access-Control-Allow-Origin", "*")
+					.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+					.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+					.append_header("Access-Control-Max-Age", "86400")
 					.set_body("Missing required query parameters. Required: u (URL), m (format)")
 					.append_header_date_field()
 					.done();
@@ -375,6 +407,10 @@ int main(int argc, char* argv[])
 			if (queries["m"] != "3" && queries["m"] != "4") { // 3 -> mp3, 4 -> mp4
 				return req->create_response(restinio::status_bad_request())
 					.set_body("Invalid format. Supported formats: 3 (mp3), 4 (mp4)")
+					.append_header("Access-Control-Allow-Origin", "*")
+					.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+					.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+					.append_header("Access-Control-Max-Age", "86400")
 					.append_header_date_field()
 					.done();
 			}
@@ -388,6 +424,10 @@ int main(int argc, char* argv[])
 						.append_header_date_field()
 						.append_header(restinio::http_field::transfer_encoding, "chunked")
 						.append_header("X-Content-Type-Options", "nosniff")
+						.append_header("Access-Control-Allow-Origin", "*")
+						.append_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+						.append_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+						.append_header("Access-Control-Max-Age", "86400")
 						.append_header(restinio::http_field::content_type, "text/plain; charset=utf-8");
 					resp.flush();
 
