@@ -6,7 +6,9 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_BINARY_DIR}/build/generators/conan_toolchain.cmake")
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+	set(CMAKE_TOOLCHAIN_FILE "${CMAKE_BINARY_DIR}/build/generators/conan_toolchain.cmake")
+endif()
 cmake_policy(SET CMP0111 OLD)
 
 project ("Nitrogen" CXX)
