@@ -10,4 +10,4 @@ RUN wget -O /usr/local/bin/nitrogen-server https://cdn.lu2000luk.com/bin/nitroge
     && chmod +x /usr/local/bin/nitrogen-server
 
 EXPOSE 3070
-ENTRYPOINT ["/usr/local/bin/nitrogen-server","--host","0.0.0.0","--use-local-yt-dlp"]
+ENTRYPOINT ["/usr/local/bin/nitrogen-server","--host","0.0.0.0","--use-local-yt-dlp","--no-download-yt-dlp"]
