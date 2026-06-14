@@ -38,7 +38,6 @@ static vector<string> general_args = {
 	"--embed-subs",
 	"--no-embed-thumbnail",
 	"--no-sponsorblock",
-	"--ffmpeg-location", "./ffmpeg/",
 	"--no-embed-metadata",
 	"--no-embed-chapters",
 	"--no-embed-info-json",
@@ -257,6 +256,7 @@ int main(int argc, char* argv[])
 	int port = 3070;
 	string host = "localhost";
 	bool use_local_yt_dlp = false;
+	bool use_local_ffmpeg = false;
 
 	fs::path this_path = fs::current_path();
 
@@ -277,6 +277,8 @@ int main(int argc, char* argv[])
 			download_yt_dlp = false;
 		} else if (args[i] == "--use-local-yt-dlp") {
 			use_local_yt_dlp = true;
+		} else if (args[i] == "--use-local-ffmpeg") {
+			use_local_ffmpeg = true;
 		}
 	}
 
@@ -303,7 +305,7 @@ int main(int argc, char* argv[])
 		restinio::on_thread_pool(std::thread::hardware_concurrency())
 		.port(port)
 		.address(host)
-		.request_handler([&ioctx, this_path, use_local_yt_dlp](restinio::request_handle_t req) {
+		.request_handler([&ioctx, this_path, use_local_yt_dlp, use_local_ffmpeg](restinio::request_handle_t req) {
 			auto path = req->header().path();
 			auto method = req->header().method();
 
@@ -420,7 +422,7 @@ int main(int argc, char* argv[])
 			
 			asio::co_spawn(
 				ioctx,
-				[&ioctx, req, use_local_yt_dlp]() -> asio::awaitable<void> {
+				[&ioctx, req, use_local_yt_dlp, use_local_ffmpeg]() -> asio::awaitable<void> {
 					auto resp = req->create_response<restinio::chunked_output_t>();
 
 					resp.append_header(restinio::http_field::server, "Nitrogen!")
@@ -461,8 +463,19 @@ int main(int argc, char* argv[])
 						string ext = (queries["m"] == "3") ? "mp3" : "mp4";
 						boost::uuids::uuid uuid = boost::uuids::random_generator()(); // https://stackoverflow.com/a/3248017
 						vector<string> output_template = template_output(boost::uuids::to_string(uuid), ext);
+						vector<string> args;
 
-						vector<string> args = merge_args({ general_args, print_output_args, output_template, { url } });
+						if (use_local_ffmpeg) {
+							args = merge_args({ general_args, print_output_args, output_template, { url } });
+						} else {
+#if _WIN32
+							args = merge_args({ general_args, print_output_args, output_template, {"--ffmpeg-location", "./ffmpeg/ffmpeg.exe"}, { url } });
+#else
+							args = merge_args({ general_args, print_output_args, output_template, {"--ffmpeg-location", "./ffmpeg/ffmpeg"}, { url } });
+#endif
+						}
+
+						
 
 						cout << "Executing command: " << exe << " " << [&args]() {
 							string cmd;
